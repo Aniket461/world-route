@@ -80,7 +80,9 @@ export class App implements OnInit, OnDestroy {
 
     this.api.config().subscribe({
       next: (cfg) => this.initMap(cfg.mapboxToken),
-      error: () => (this.error = 'Could not load Mapbox config. Is the Go API running on port 8080?'),
+      error: () =>
+        (this.error =
+          'Could not load Mapbox config. Locally: start the Go API on :8080. On Netlify: set API_BASE_URL to your Railway URL and redeploy.'),
     });
   }
 
