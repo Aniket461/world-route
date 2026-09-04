@@ -1,5 +1,13 @@
 import type { Place, PlanResponse } from './api';
 
+function mapsUrl(place: Place): string {
+  const q =
+    Number.isFinite(place.lat) && Number.isFinite(place.lng)
+      ? `${place.lat},${place.lng}`
+      : [place.name, place.address].filter(Boolean).join(', ');
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+}
+
 function wrapText(doc: any, text: string, x: number, y: number, maxWidth: number, lineHeight: number): number {
   const lines: string[] = doc.splitTextToSize(text, maxWidth);
   lines.forEach((line: string, i: number) => {
@@ -89,7 +97,7 @@ export async function exportRoutePdf(
   ordered.forEach((place: Place, i: number) => {
     const isStart = i === 0;
     const isEnd = i === ordered.length - 1;
-    const cardH = 58;
+    const cardH = 72;
     ensureSpace(cardH + 70);
 
     // Place card
@@ -119,6 +127,19 @@ export async function exportRoutePdf(
     doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
     wrapText(doc, place.name || 'Stop', margin + 28, y + 40, contentW - 48, 14);
+
+    // Export-only deep link — opens this stop in Google Maps.
+    const linkLabel = 'Open in Google Maps';
+    const linkX = margin + 28;
+    const linkY = y + 58;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(26, 115, 232);
+    doc.textWithLink(linkLabel, linkX, linkY, { url: mapsUrl(place) });
+    const linkW = doc.getTextWidth(linkLabel);
+    doc.setDrawColor(26, 115, 232);
+    doc.setLineWidth(0.6);
+    doc.line(linkX, linkY + 1.5, linkX + linkW, linkY + 1.5);
 
     y += cardH + 4;
 
@@ -154,7 +175,11 @@ export async function exportRoutePdf(
   ensureSpace(36);
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184);
-  doc.text(`Exported from World Route · ${new Date().toLocaleString()}`, margin, y);
+  doc.text(
+    `Exported from World Route · ${new Date().toLocaleString()} · Map links open in Google Maps`,
+    margin,
+    y,
+  );
 
   const stamp = new Date().toISOString().slice(0, 10);
   doc.save(`world-route-${stamp}.pdf`);
