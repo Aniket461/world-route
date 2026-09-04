@@ -1,0 +1,9 @@
+.env
+node_modules/
+dist/
+.angular/
+*.exe
+backend/tmp/
+backend/last-plan.json
+.DS_Store
+Thumbs.db

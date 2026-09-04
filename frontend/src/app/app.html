@@ -1,0 +1,239 @@
+<div class="shell">
+  <aside class="panel">
+    <header class="brand">
+      <p class="eyebrow">
+        <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h12" /><path d="M12 7l5 5-5 5" /><circle cx="4" cy="12" r="1.7" /></svg>
+        World Route
+      </p>
+      <h1>Plan the trip. We’ll order the stops.</h1>
+      <p class="lede">
+        Search places or click the map to set points. After your trip is filled in, map clicks ask
+        where to add the place so nothing gets changed by accident.
+      </p>
+    </header>
+
+    <section class="form-block">
+      <label class="field" [class.focused]="activeField === 'start'">
+        <span>Start</span>
+        <input
+          [(ngModel)]="startQuery"
+          (input)="onQuery('start', startQuery)"
+          (focus)="focusField('start'); onQuery('start', startQuery)"
+          placeholder="City, address, or landmark"
+          autocomplete="off"
+        />
+      </label>
+
+      <label class="field" [class.focused]="activeField === 'stop'">
+        <span>Add a stop <em>{{ remainingStops() }} left</em></span>
+        <input
+          [(ngModel)]="stopQuery"
+          (input)="onQuery('stop', stopQuery)"
+          (focus)="focusField('stop'); onQuery('stop', stopQuery)"
+          placeholder="Museum, café, viewpoint…"
+          autocomplete="off"
+        />
+      </label>
+
+      @if (stops.length) {
+        <ul class="stops">
+          @for (stop of stops; track $index) {
+            <li>
+              <button type="button" class="stop-jump" (click)="focusPlace(stop, $index + 1)">
+                <span class="num">{{ $index + 1 }}</span>
+                <span class="name">{{ stop.name }}</span>
+                <span class="mini-goto" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 21s6.5-4.9 6.5-10.2A6.5 6.5 0 0 0 12 4.3a6.5 6.5 0 0 0-6.5 6.5C5.5 16.1 12 21 12 21z" /><circle cx="12" cy="10.8" r="2.2" /></svg>
+                </span>
+              </button>
+              <button type="button" class="link" (click)="removeStop($index)">Remove</button>
+            </li>
+          }
+        </ul>
+      }
+
+      <label class="field" [class.focused]="activeField === 'end'">
+        <span>End</span>
+        <input
+          [(ngModel)]="endQuery"
+          (input)="onQuery('end', endQuery)"
+          (focus)="focusField('end'); onQuery('end', endQuery)"
+          placeholder="Where the trip finishes"
+          autocomplete="off"
+        />
+      </label>
+
+      @if (start) {
+        <button type="button" class="text-btn" (click)="useStartAsEnd()">Return to start (round trip)</button>
+      }
+
+      @if (searching) {
+        <p class="hint search-status">Searching places…</p>
+      }
+
+      @if (suggestions.length) {
+        <ul class="suggest">
+          @for (hit of suggestions; track hit.id || (hit.name + hit.address)) {
+            <li>
+              <button type="button" (click)="chooseSuggestion(hit)">
+                <span class="suggest-icon" aria-hidden="true">
+                  @if (hit.type === 'poi') {
+                    <svg viewBox="0 0 24 24"><path d="M12 21s6.5-4.9 6.5-10.2A6.5 6.5 0 0 0 12 4.3a6.5 6.5 0 0 0-6.5 6.5C5.5 16.1 12 21 12 21z" /><circle cx="12" cy="10.8" r="2.2" /></svg>
+                  } @else if (hit.type === 'address' || hit.type === 'street') {
+                    <svg viewBox="0 0 24 24"><path d="M4 20V9l8-5 8 5v11" /><path d="M9 20v-6h6v6" /></svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /><path d="M12 8v8" /><path d="M8 12h8" /></svg>
+                  }
+                </span>
+                <span class="suggest-copy">
+                  <span class="suggest-top">
+                    <strong>{{ hit.name }}</strong>
+                    <span class="type-pill">{{ typeLabel(hit.type) }}</span>
+                  </span>
+                  <em>{{ hit.address }}</em>
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+
+      <label class="field">
+        <span>Travel mode</span>
+        <select [(ngModel)]="profile">
+          @for (p of profiles; track p.id) {
+            <option [value]="p.id">{{ p.label }}</option>
+          }
+        </select>
+      </label>
+
+      @if (error) {
+        <p class="error">{{ error }}</p>
+      }
+
+      <div class="actions">
+        <button type="button" class="primary" [disabled]="loading || !start || !end" (click)="plan()">
+          {{ loading ? 'Optimizing…' : 'Build optimized path' }}
+        </button>
+        <button type="button" class="ghost" (click)="clearAll()">Reset</button>
+      </div>
+    </section>
+
+    @if (result) {
+      <section class="route-card" aria-label="Optimized route">
+        <div class="route-head">
+          <div>
+            <p class="eyebrow">Your route</p>
+            <h2>{{ durationLabel() }} · {{ distanceLabel() }}</h2>
+          </div>
+          <button type="button" class="export-btn" [disabled]="exporting" (click)="exportPdf()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v12" />
+              <path d="M7 10l5 5 5-5" />
+              <path d="M5 19h14" />
+            </svg>
+            {{ exporting ? 'Exporting…' : 'Export PDF' }}
+          </button>
+        </div>
+
+        @if (result.warning) {
+          <p class="hint">{{ result.warning }}</p>
+        }
+
+        <ol class="journey">
+          @for (place of result.ordered; track $index; let last = $last; let odd = $odd) {
+            <li>
+              <button
+                type="button"
+                class="place-card"
+                [class.start]="$index === 0"
+                [class.end]="last"
+                [class.active]="isFocused(place, $index)"
+                (click)="focusPlace(place, $index)"
+              >
+                <span class="icon-wrap" aria-hidden="true">
+                  @if ($index === 0) {
+                    <svg viewBox="0 0 24 24"><path d="M6 3v18" /><path d="M6 4h9l-1.5 3L15 10H6" /></svg>
+                  } @else if (last) {
+                    <svg viewBox="0 0 24 24"><path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11z" /><circle cx="12" cy="10" r="2.4" /></svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24"><path d="M12 21s6.5-4.9 6.5-10.2A6.5 6.5 0 0 0 12 4.3a6.5 6.5 0 0 0-6.5 6.5C5.5 16.1 12 21 12 21z" /><circle cx="12" cy="10.8" r="2.2" /></svg>
+                  }
+                </span>
+                <span class="place-copy">
+                  <span class="badge">{{ placeRole($index, result.ordered.length) }}</span>
+                  <strong>{{ place.name }}</strong>
+                  <span class="goto">View on map</span>
+                </span>
+              </button>
+            </li>
+
+            @if (!last && result.legs[$index]) {
+              <li class="curve-leg" [class.flip]="odd" aria-label="Next leg">
+                <svg class="curve" viewBox="0 0 220 88" preserveAspectRatio="none" aria-hidden="true">
+                  <defs>
+                    <linearGradient [attr.id]="'legGrad' + $index" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#7fb0ff" />
+                      <stop offset="100%" stop-color="#1a73e8" />
+                    </linearGradient>
+                    <marker [attr.id]="'arrowHead' + $index" markerWidth="8" markerHeight="8" refX="5" refY="4" orient="auto">
+                      <path d="M0,0 L8,4 L0,8 Z" fill="#1a73e8" />
+                    </marker>
+                  </defs>
+                  <path
+                    class="curve-path"
+                    [attr.stroke]="'url(#legGrad' + $index + ')'"
+                    [attr.marker-end]="'url(#arrowHead' + $index + ')'"
+                    d="M110 4 C 28 18, 28 70, 110 84"
+                  />
+                </svg>
+                <div class="leg-bubble">
+                  <span class="km">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h12" /><path d="M13 7l5 5-5 5" /><circle cx="5" cy="12" r="1.6" /></svg>
+                    {{ distanceLabel(result.legs[$index].distanceM) }}
+                  </span>
+                  <span class="time">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" /><path d="M12 8v5l3 2" /></svg>
+                    {{ durationLabel(result.legs[$index].durationS) }}
+                  </span>
+                </div>
+              </li>
+            }
+          }
+        </ol>
+      </section>
+    }
+  </aside>
+
+  <div id="map" class="map" [class.ready]="mapReady"></div>
+</div>
+
+@if (pendingPick) {
+  <div class="pick-backdrop" (click)="cancelPick()" role="presentation"></div>
+  <div class="pick-modal" role="dialog" aria-modal="true" aria-labelledby="pick-title">
+    <p class="eyebrow">Add to trip</p>
+    <h2 id="pick-title">Where should this go?</h2>
+    <p class="pick-place">
+      <strong>{{ pendingPick.name }}</strong>
+      <em>{{ pendingPick.address }}</em>
+    </p>
+    @if (result) {
+      <p class="hint">This will clear the current optimized path so you can rebuild it.</p>
+    }
+    <div class="pick-actions">
+      <button type="button" class="pick-opt start" (click)="confirmPick('start')">
+        <span class="opt-label">Start</span>
+        <span class="opt-sub">Replace starting point</span>
+      </button>
+      <button type="button" class="pick-opt stop" (click)="confirmPick('stop')" [disabled]="stops.length >= 10">
+        <span class="opt-label">Stop</span>
+        <span class="opt-sub">{{ stops.length >= 10 ? 'Stop limit reached' : 'Add as a waypoint' }}</span>
+      </button>
+      <button type="button" class="pick-opt end" (click)="confirmPick('end')">
+        <span class="opt-label">End</span>
+        <span class="opt-sub">Replace destination</span>
+      </button>
+    </div>
+    <button type="button" class="ghost pick-cancel" (click)="cancelPick()">Cancel — keep trip as is</button>
+  </div>
+}

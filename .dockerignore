@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+**/.env
+**/node_modules
+**/dist
+**/.angular
+frontend
+*.md
+docker-compose.yml
+netlify.toml

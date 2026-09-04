@@ -1,0 +1,10 @@
+.env
+*.exe
+tmp/
+.git
+.gitignore
+README.md
+testdata*
+last-plan.json
+*.json
+!go.mod

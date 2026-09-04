@@ -1,0 +1,14 @@
+# Local API container (mirrors Railway). Frontend still runs via `npm start` or Netlify.
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      PORT: "8080"
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4200}
+    restart: unless-stopped
