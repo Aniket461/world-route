@@ -151,7 +151,8 @@ func main() {
 
 	handler := withCORS(origins, mux)
 	addr := ":" + port
-	log.Printf("world-route API on http://localhost%s (CORS: %s)", addr, strings.Join(origins, ", "))
+	// Use stdout so Railway does not classify the boot line as an error (Go log → stderr).
+	fmt.Printf("world-route API listening on %s (CORS: %s)\n", addr, strings.Join(origins, ", "))
 	log.Fatal(http.ListenAndServe(addr, handler))
 }
 

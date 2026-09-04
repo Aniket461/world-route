@@ -39,7 +39,10 @@ export interface PlanResponse {
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private readonly base = (environment.apiBaseUrl || '').replace(/\/$/, '');
+  private readonly base = (environment.apiBaseUrl || '')
+    .trim()
+    .replace(/^=+/, '')
+    .replace(/\/$/, '');
 
   constructor(private readonly http: HttpClient) {}
 
