@@ -826,6 +826,35 @@
     border-radius: 12px;
   }
 
+  /* Suggestions sit under the active input, not below the whole form. */
+  .field .search-status {
+    margin: 0.4rem 0 0;
+  }
+
+  .field .suggest {
+    margin-top: 0.45rem;
+    max-height: min(38dvh, 14.5rem);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Free vertical space while searching with the keyboard open. */
+  .panel:has(.field.focused .suggest),
+  .panel:has(.field.focused .search-status) {
+    max-height: min(92dvh, calc(100dvh - 0.5rem));
+  }
+
+  .panel:has(.field.focused .suggest) .brand,
+  .panel:has(.field.focused .search-status) .brand {
+    display: none;
+  }
+
+  .panel:has(.field.focused .suggest) .route-card,
+  .panel:has(.field.focused .search-status) .route-card {
+    display: none;
+  }
+
   .actions {
     position: sticky;
     bottom: 0;

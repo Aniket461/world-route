@@ -75,6 +75,7 @@ export class App implements OnInit, OnDestroy {
         next: (hits) => {
           this.searching = false;
           this.suggestions = hits;
+          this.scrollActiveFieldIntoView();
         },
         error: () => {
           this.searching = false;
@@ -115,6 +116,17 @@ export class App implements OnInit, OnDestroy {
 
   private isMobileLayout(): boolean {
     return typeof window !== 'undefined' && window.matchMedia('(max-width: 840px)').matches;
+  }
+
+  /** Keep the focused search field + suggestions above the mobile keyboard. */
+  private scrollActiveFieldIntoView(): void {
+    if (!this.isMobileLayout()) return;
+    queueMicrotask(() => {
+      const field = document.querySelector('.field.focused') as HTMLElement | null;
+      field?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      const suggest = field?.querySelector('.suggest') as HTMLElement | null;
+      suggest?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    });
   }
 
   onQuery(field: FieldKey, q: string): void {
