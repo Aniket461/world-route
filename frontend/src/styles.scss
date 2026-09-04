@@ -13,6 +13,13 @@ body {
   font-family: "Source Sans 3", "Segoe UI", sans-serif;
 }
 
+@supports (height: 100dvh) {
+  html,
+  body {
+    height: 100dvh;
+  }
+}
+
 .pin {
   width: 30px;
   height: 30px;
@@ -134,4 +141,16 @@ body {
 .mapboxgl-ctrl-logo,
 .mapboxgl-ctrl-attrib {
   opacity: 0.85;
+}
+
+@media (max-width: 840px) {
+  .mapboxgl-ctrl-bottom-left,
+  .mapboxgl-ctrl-bottom-right {
+    margin-bottom: 5.5rem !important;
+    transition: margin-bottom 280ms ease;
+  }
+
+  .mapboxgl-popup.pin-tip .mapboxgl-popup-content {
+    max-width: min(300px, calc(100vw - 2rem));
+  }
 }

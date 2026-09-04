@@ -42,6 +42,8 @@ export class App implements OnInit, OnDestroy {
   focusedPlaceKey = '';
   searchSession = crypto.randomUUID();
   pendingPick?: Place | null = null;
+  /** Mobile bottom sheet: open for planning, collapse to focus the map. */
+  mobileSheetOpen = true;
 
   private markers: Marker[] = [];
   private readonly search$ = new Subject<{ field: FieldKey; q: string }>();
@@ -93,6 +95,24 @@ export class App implements OnInit, OnDestroy {
 
   focusField(field: FieldKey): void {
     this.activeField = field;
+    if (!this.mobileSheetOpen && this.isMobileLayout()) {
+      this.setMobileSheet(true);
+    }
+  }
+
+  toggleMobileSheet(): void {
+    this.setMobileSheet(!this.mobileSheetOpen);
+  }
+
+  private setMobileSheet(open: boolean): void {
+    this.mobileSheetOpen = open;
+    // Mapbox needs a resize after the sheet changes the map viewport.
+    queueMicrotask(() => this.map?.resize());
+    setTimeout(() => this.map?.resize(), 320);
+  }
+
+  private isMobileLayout(): boolean {
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 840px)').matches;
   }
 
   onQuery(field: FieldKey, q: string): void {
@@ -193,6 +213,9 @@ export class App implements OnInit, OnDestroy {
     this.suggestions = [];
     this.focusedPlaceKey = '';
     this.pendingPick = null;
+    if (this.isMobileLayout()) {
+      this.setMobileSheet(true);
+    }
     this.redraw();
   }
 
@@ -220,6 +243,9 @@ export class App implements OnInit, OnDestroy {
           this.loading = false;
           this.drawRoute(res);
           this.placeOptimizedMarkers(res.ordered);
+          if (this.isMobileLayout()) {
+            this.setMobileSheet(false);
+          }
         },
         error: (err: HttpErrorResponse) => {
           this.loading = false;
@@ -281,6 +307,9 @@ export class App implements OnInit, OnDestroy {
 
   focusPlace(place: Place, index = -1): void {
     this.focusedPlaceKey = this.placeKey(place, index);
+    if (this.isMobileLayout()) {
+      this.setMobileSheet(false);
+    }
     this.flyTo(place, true);
   }
 
