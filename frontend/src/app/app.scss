@@ -616,14 +616,14 @@
 .pick-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 60;
   background: rgba(15, 23, 42, 0.38);
   backdrop-filter: blur(2px);
 }
 
 .pick-modal {
   position: fixed;
-  z-index: 50;
+  z-index: 70;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
@@ -899,13 +899,14 @@
   }
 
   .pick-modal {
-    top: auto;
-    bottom: max(1rem, env(safe-area-inset-bottom));
+    top: 50%;
+    bottom: auto;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
     width: min(440px, calc(100vw - 1.25rem));
-    max-height: min(70dvh, calc(100dvh - 2rem));
+    max-height: min(75dvh, calc(100dvh - 2rem));
     overflow: auto;
+    padding-bottom: max(1.15rem, env(safe-area-inset-bottom));
   }
 }
 

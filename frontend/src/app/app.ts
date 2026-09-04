@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs';
@@ -22,6 +22,8 @@ type Marker = any;
 export class App implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly zone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   map?: MapboxMap;
   profile = 'mapbox/driving';
@@ -339,22 +341,26 @@ export class App implements OnInit, OnDestroy {
     });
     this.map.on('click', (e: { lngLat: { lng: number; lat: number } }) => {
       const { lng, lat } = e.lngLat;
-      this.api.reverse(lng, lat).subscribe({
-        next: (hit) =>
-          this.handleMapPick({ name: hit.name, address: hit.address, lng: hit.lng, lat: hit.lat }),
-        error: () =>
-          this.handleMapPick({
-            name: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
-            address: 'Dropped pin',
-            lng,
-            lat,
-          }),
+      // Mapbox events run outside Angular; re-enter so the confirm dialog renders (esp. on mobile).
+      this.zone.run(() => {
+        this.api.reverse(lng, lat).subscribe({
+          next: (hit) =>
+            this.handleMapPick({ name: hit.name, address: hit.address, lng: hit.lng, lat: hit.lat }),
+          error: () =>
+            this.handleMapPick({
+              name: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+              address: 'Dropped pin',
+              lng,
+              lat,
+            }),
+        });
       });
     });
   }
 
-  /** After a route exists (or trip is already filled), confirm instead of silently editing. */
+  /** Desktop: confirm once the trip is filled or a route exists. Mobile: always confirm map taps. */
   private shouldConfirmMapPick(): boolean {
+    if (this.isMobileLayout()) return true;
     return !!this.result || (!!this.start && !!this.end);
   }
 
@@ -362,9 +368,14 @@ export class App implements OnInit, OnDestroy {
     if (this.shouldConfirmMapPick()) {
       this.pendingPick = place;
       this.suggestions = [];
+      if (this.isMobileLayout() && this.mobileSheetOpen) {
+        this.setMobileSheet(false);
+      }
+      this.cdr.detectChanges();
       return;
     }
     this.applyPicked(place);
+    this.cdr.detectChanges();
   }
 
   confirmPick(as: FieldKey): void {
