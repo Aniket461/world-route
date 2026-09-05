@@ -99,8 +99,16 @@
 
 .user-avatar.ghost {
   background: #94a3b8;
-  font-size: 0.85rem;
-  font-weight: 600;
+}
+
+.user-icon {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .user-chip-label {
@@ -942,8 +950,9 @@ a.export-btn {
     font-size: 0.8rem;
   }
 
-  .user-avatar.ghost {
-    font-size: 0.95rem;
+  .user-icon {
+    width: 1.15rem;
+    height: 1.15rem;
   }
 
   .user-chip-label {
