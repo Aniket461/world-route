@@ -1,0 +1,31 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <p class="eyebrow">World Route</p>
+    <h1>Sign in</h1>
+    <p class="lede">Save optimized trips and open them again later.</p>
+
+    <form (ngSubmit)="submit()">
+      <label class="field">
+        <span>Username or email</span>
+        <input [(ngModel)]="login" name="login" autocomplete="username" required />
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input [(ngModel)]="password" name="password" type="password" autocomplete="current-password" required />
+      </label>
+      @if (error) {
+        <p class="error">{{ error }}</p>
+      }
+      <button class="primary" type="submit" [disabled]="loading || !login.trim() || !password">
+        {{ loading ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </form>
+
+    <p class="foot">
+      No account?
+      <a routerLink="/register">Create one</a>
+      ·
+      <a routerLink="/">Back to planner</a>
+    </p>
+  </div>
+</div>

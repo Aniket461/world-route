@@ -21,12 +21,28 @@
     </button>
 
     <div class="sheet-body">
-      <header class="brand">
+    <header class="brand">
+      <div class="brand-top">
         <p class="eyebrow">
           <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h12" /><path d="M12 7l5 5-5 5" /><circle cx="4" cy="12" r="1.7" /></svg>
           World Route
         </p>
-        <h1>Plan the trip. We’ll order the stops.</h1>
+        <a
+          class="user-chip"
+          [routerLink]="user() ? '/user' : '/login'"
+          [attr.aria-label]="user() ? 'Open account' : 'Sign in'"
+          [title]="user() ? user()!.displayName : 'Sign in'"
+        >
+          @if (user(); as u) {
+            <span class="user-avatar">{{ userInitial() }}</span>
+            <span class="user-chip-label">{{ u.displayName }}</span>
+          } @else {
+            <span class="user-avatar ghost">?</span>
+            <span class="user-chip-label">Sign in</span>
+          }
+        </a>
+      </div>
+      <h1>Plan the trip. We’ll order the stops.</h1>
         <p class="lede">
           Search places or click the map to set points. After your trip is filled in, map clicks ask
           where to add the place so nothing gets changed by accident.
@@ -126,11 +142,19 @@
 
       @if (result) {
         <section class="route-card" aria-label="Optimized route">
-          <div class="route-head">
-            <div>
-              <p class="eyebrow">Your route</p>
-              <h2>{{ durationLabel() }} · {{ distanceLabel() }}</h2>
-            </div>
+        <div class="route-head">
+          <div>
+            <p class="eyebrow">Your route</p>
+            <h2>{{ durationLabel() }} · {{ distanceLabel() }}</h2>
+          </div>
+          <div class="route-actions">
+            @if (user()) {
+              <button type="button" class="export-btn save-btn" [disabled]="saving || savedOk" (click)="openSaveDialog()">
+                {{ saving ? 'Saving…' : savedOk ? 'Saved' : 'Save trip' }}
+              </button>
+            } @else {
+              <a class="export-btn save-btn" routerLink="/login" [queryParams]="{ next: '/' }">Sign in to save</a>
+            }
             <button type="button" class="export-btn" [disabled]="exporting" (click)="exportPdf()">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 3v12" />
@@ -140,6 +164,7 @@
               {{ exporting ? 'Exporting…' : 'Export PDF' }}
             </button>
           </div>
+        </div>
 
           @if (result.warning) {
             <p class="hint">{{ result.warning }}</p>
@@ -241,6 +266,31 @@
       </button>
     </div>
     <button type="button" class="ghost pick-cancel" (click)="cancelPick()">Cancel</button>
+  </div>
+}
+
+@if (saveDialogOpen) {
+  <div class="pick-backdrop" (click)="cancelSaveDialog()" role="presentation"></div>
+  <div class="pick-modal save-modal" role="dialog" aria-modal="true" aria-labelledby="save-title">
+    <p class="eyebrow">Save trip</p>
+    <h2 id="save-title">Name this path</h2>
+    <p class="hint">You’ll see this name on your account under saved paths.</p>
+    <label class="field save-title-field">
+      <span>Trip name</span>
+      <input
+        [(ngModel)]="tripTitle"
+        name="tripTitle"
+        maxlength="120"
+        autocomplete="off"
+        (keydown.enter)="$event.preventDefault(); confirmSaveTrip()"
+      />
+    </label>
+    <div class="save-modal-actions">
+      <button type="button" class="primary" [disabled]="saving || !tripTitle.trim()" (click)="confirmSaveTrip()">
+        {{ saving ? 'Saving…' : 'Save' }}
+      </button>
+      <button type="button" class="ghost" [disabled]="saving" (click)="cancelSaveDialog()">Cancel</button>
+    </div>
   </div>
 }
 

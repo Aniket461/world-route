@@ -1,0 +1,39 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <p class="eyebrow">World Route</p>
+    <h1>Create account</h1>
+    <p class="lede">Keep your optimized paths and reopen them anytime.</p>
+
+    <form (ngSubmit)="submit()">
+      <label class="field">
+        <span>Username</span>
+        <input [(ngModel)]="username" name="username" autocomplete="username" required minlength="3" />
+      </label>
+      <label class="field">
+        <span>Email</span>
+        <input [(ngModel)]="email" name="email" type="email" autocomplete="email" required />
+      </label>
+      <label class="field">
+        <span>Name</span>
+        <input [(ngModel)]="displayName" name="displayName" autocomplete="name" placeholder="Optional" />
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input [(ngModel)]="password" name="password" type="password" autocomplete="new-password" required minlength="6" />
+      </label>
+      @if (error) {
+        <p class="error">{{ error }}</p>
+      }
+      <button class="primary" type="submit" [disabled]="loading || username.trim().length < 3 || !email.trim() || password.length < 6">
+        {{ loading ? 'Creating…' : 'Create account' }}
+      </button>
+    </form>
+
+    <p class="foot">
+      Already have an account?
+      <a routerLink="/login">Sign in</a>
+      ·
+      <a routerLink="/">Back to planner</a>
+    </p>
+  </div>
+</div>

@@ -50,6 +50,51 @@
   gap: 0.4rem;
 }
 
+.brand-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 11rem;
+  text-decoration: none;
+  color: #0f172a;
+  border: 1px solid #cdd6e3;
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem 0.2rem 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.user-avatar {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #1a73e8;
+  color: #fff;
+  font-size: 0.78rem;
+  flex: 0 0 auto;
+}
+
+.user-avatar.ghost {
+  background: #94a3b8;
+}
+
+.user-chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 0.25rem;
+}
+
 .brand-mark {
   width: 0.95rem;
   height: 0.95rem;
@@ -335,6 +380,13 @@
   gap: 0.75rem;
 }
 
+.route-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
 .export-btn {
   display: inline-flex;
   align-items: center;
@@ -368,6 +420,16 @@
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+a.export-btn {
+  text-decoration: none;
+}
+
+.save-btn {
+  background: #fff;
+  border-color: #cdd6e3;
+  color: #0f172a;
 }
 
 .journey {
@@ -720,6 +782,48 @@
 .pick-cancel {
   width: 100%;
   margin-top: 0.75rem;
+}
+
+.save-title-field {
+  margin-top: 0.35rem;
+}
+
+.save-title-field input {
+  border: 1px solid #cdd6e3;
+  background: #fff;
+  color: #0f172a;
+  border-radius: 10px;
+  padding: 0.7rem 0.75rem;
+  font: inherit;
+  font-size: 16px;
+}
+
+.save-modal-actions {
+  display: flex;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.save-modal-actions .primary {
+  flex: 1;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  background: #1a73e8;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save-modal-actions .primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.save-modal-actions .ghost {
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
 }
 
 @media (max-width: 840px) {

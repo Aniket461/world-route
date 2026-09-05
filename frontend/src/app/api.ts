@@ -80,4 +80,45 @@ export class ApiService {
   plan(body: { profile: string; start: Place; end: Place; places: Place[] }): Observable<PlanResponse> {
     return this.http.post<PlanResponse>(this.url('/api/plan'), body);
   }
+
+  listTrips(): Observable<SavedTripSummary[]> {
+    return this.http.get<SavedTripSummary[]>(this.url('/api/trips'));
+  }
+
+  getTrip(id: string): Observable<SavedTrip> {
+    return this.http.get<SavedTrip>(this.url(`/api/trips/${id}`));
+  }
+
+  saveTrip(body: {
+    title: string;
+    profile: string;
+    payload: SavedTripPayload;
+  }): Observable<SavedTripSummary> {
+    return this.http.post<SavedTripSummary>(this.url('/api/trips'), body);
+  }
+
+  deleteTrip(id: string): Observable<void> {
+    return this.http.delete<void>(this.url(`/api/trips/${id}`));
+  }
+}
+
+export interface SavedTripSummary {
+  id: string;
+  title: string;
+  profile: string;
+  durationS: number;
+  distanceM: number;
+  createdAt: string;
+}
+
+export interface SavedTripPayload {
+  profile: string;
+  start: Place;
+  end: Place;
+  places: Place[];
+  result: PlanResponse;
+}
+
+export interface SavedTrip extends SavedTripSummary {
+  payload: SavedTripPayload;
 }

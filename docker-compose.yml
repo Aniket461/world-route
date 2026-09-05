@@ -1,5 +1,22 @@
-# Local API container (mirrors Railway). Frontend still runs via `npm start` or Netlify.
+# Local stack: Postgres + API. Frontend: `cd frontend && npm start`.
 services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: worldroute
+      POSTGRES_PASSWORD: worldroute
+      POSTGRES_DB: worldroute
+    volumes:
+      - wr_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U worldroute -d worldroute"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
   api:
     build:
       context: ./backend
@@ -11,4 +28,12 @@ services:
     environment:
       PORT: "8080"
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4200}
+      DATABASE_URL: ${DATABASE_URL:-postgres://worldroute:worldroute@postgres:5432/worldroute?sslmode=disable}
+      JWT_SECRET: ${JWT_SECRET:-dev-change-me-world-route}
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  wr_pgdata:

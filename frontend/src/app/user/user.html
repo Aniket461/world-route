@@ -1,0 +1,40 @@
+<div class="user-page">
+  <aside class="user-panel">
+    <header class="brand">
+      <a routerLink="/" class="back">← Planner</a>
+      <div class="avatar" aria-hidden="true">{{ initial() }}</div>
+      @if (user(); as u) {
+        <h1>{{ u.displayName }}</h1>
+        <p class="meta">{{ '@' + u.username }} · {{ u.email }}</p>
+      }
+      <div class="actions">
+        <a routerLink="/" class="ghost">New trip</a>
+        <button type="button" class="ghost" (click)="logout()">Sign out</button>
+      </div>
+    </header>
+
+    <section class="trips" aria-label="Saved trips">
+      <p class="eyebrow">Saved paths</p>
+      @if (loading) {
+        <p class="hint">Loading…</p>
+      } @else if (error) {
+        <p class="error">{{ error }}</p>
+      } @else if (!trips.length) {
+        <p class="hint">No saved trips yet. Optimize a route, then tap Save trip.</p>
+      } @else {
+        <ul>
+          @for (trip of trips; track trip.id) {
+            <li>
+              <button type="button" class="trip-card" (click)="openTrip(trip.id)">
+                <strong>{{ trip.title }}</strong>
+                <span>{{ durationLabel(trip.durationS) }} · {{ distanceLabel(trip.distanceM) }}</span>
+                <em>{{ trip.createdAt | date: 'mediumDate' }}</em>
+              </button>
+              <button type="button" class="link" (click)="deleteTrip(trip.id, $event)">Delete</button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </aside>
+</div>

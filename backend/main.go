@@ -75,6 +75,9 @@ func main() {
 		origins = []string{"http://localhost:4200"}
 	}
 
+	pool := connectDB()
+	defer pool.Close()
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
@@ -82,6 +85,8 @@ func main() {
 	mux.HandleFunc("GET /api/config", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"mapboxToken": token})
 	})
+	registerAuthRoutes(mux, pool)
+	registerTripRoutes(mux, pool)
 	mux.HandleFunc("GET /api/search", func(w http.ResponseWriter, r *http.Request) {
 		q := strings.TrimSpace(r.URL.Query().Get("q"))
 		if len(q) < 2 {
@@ -886,7 +891,7 @@ func withCORS(allowed []string, next http.Handler) http.Handler {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Vary", "Origin")
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		} else if origin == "" && len(allowed) > 0 {
 			// Non-browser clients (curl/health checks).
 			w.Header().Set("Access-Control-Allow-Origin", allowed[0])

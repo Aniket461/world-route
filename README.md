@@ -23,19 +23,22 @@ Copy `.env.example` to `.env` and set `MAPBOX_ACCESS_TOKEN`.
 ### Option A — processes
 
 ```bash
-# terminal 1
+# terminal 1 — Postgres
+docker compose up -d postgres
+
+# terminal 2 — API (needs DATABASE_URL + JWT_SECRET in .env)
 cd backend
 go run .
 
-# terminal 2
+# terminal 3 — UI
 cd frontend
 npm install
 npm start
 ```
 
-Open [http://localhost:4200](http://localhost:4200).
+Open [http://localhost:4200](http://localhost:4200). Sign in is optional; use it to save trips.
 
-### Option B — API in Docker
+### Option B — API + Postgres in Docker
 
 ```bash
 docker compose up --build
@@ -51,8 +54,12 @@ cd frontend && npm start
 3. Variables:
    - `MAPBOX_ACCESS_TOKEN` = your `pk.` token
    - `CORS_ORIGIN` = `https://YOUR_SITE.netlify.app` (add `http://localhost:4200` while testing; comma-separate multiple)
+   - `DATABASE_URL` = Railway Postgres connection string
+   - `JWT_SECRET` = a long random secret
 4. Railway sets `PORT` automatically.
 5. Copy the public HTTPS URL, e.g. `https://world-route-api.up.railway.app`.
+
+Add a Railway **Postgres** plugin/service and paste its URL into `DATABASE_URL`.
 
 Health check: `GET /api/health`
 
